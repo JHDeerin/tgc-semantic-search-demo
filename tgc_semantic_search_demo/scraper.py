@@ -1,14 +1,19 @@
 """Utilities for scraping article data from The Gospel Coalition website."""
-from datetime import datetime
+import json
+import os
 import re
-from dataclasses import dataclass
+import string
+import dataclasses
+import logging
+from datetime import datetime
+from pathlib import Path
 from typing import List
 
 import requests
 from bs4 import BeautifulSoup
 
 
-@dataclass
+@dataclasses.dataclass
 class ArticleData:
     """Data from a TGC article post."""
     title: str
@@ -16,6 +21,11 @@ class ArticleData:
     publish_datetime: datetime
     text: List[str]
     url: str
+
+    def to_json(self) -> dict:
+        data = dataclasses.asdict(self)
+        data["publish_datetime"] = self.publish_datetime.isoformat()
+        return data
 
 
 def parse_article_urls(html: str) -> List[str]:
@@ -39,7 +49,12 @@ def parse_article(article_html: str) -> ArticleData:
     soup = BeautifulSoup(article_html, features="html.parser")
     title = soup.find("title").text
     author = soup.find("article").find("span", class_="author").text
-    paragraphs = soup.find("article").find_all("p")
+    paragraphs = soup.find("article").find("div", class_="content_container").find_all("p")
+    text_paragraphs = [
+        p for list in [p.text.split("\n") for p in paragraphs] for p in list
+    ]
+    text_paragraphs = [p for p in text_paragraphs if p.strip()]
+
     publish_datetime = datetime.fromisoformat(
         soup.find("article").find("time")["datetime"]
     )
@@ -49,7 +64,7 @@ def parse_article(article_html: str) -> ArticleData:
         title=title,
         author=author.strip(),
         publish_datetime=publish_datetime,
-        text=[p.text for p in paragraphs],
+        text=text_paragraphs,
         url=article_url
     )
 
@@ -60,3 +75,24 @@ def fetch_article(url: str) -> ArticleData:
     if res.status_code >= 400:
         raise requests.exceptions.HTTPError(response=res)
     return parse_article(res.text)
+
+
+def download_recent_tgc_articles(n: int, dst: Path):
+    """Scrapes and downloads up to the N most recent TGC articles in JSON format."""
+    article_urls = parse_article_urls(search_tgc(max_posts=n))
+    print(f"Found {len(article_urls)} articles")
+    os.makedirs(dst, exist_ok=True)
+    for i, url in enumerate(article_urls):
+        try:
+            article = fetch_article(url)
+            article_filename = article.title.lower().translate(str.maketrans("", "", string.punctuation)).replace(" ", "_")
+            with open(dst / f"{article_filename}.json", "w") as file:
+                json.dump(article.to_json(), file, indent=2)
+            print(f"[{i+1}/{len(article_urls)}] Saved '{url}' ({len(article.text)} paragraphs)")
+        except Exception as e:
+            logging.exception(e)
+            print(f"ERROR: Failed to download '{url}'")
+
+
+if __name__ == "__main__":
+    download_recent_tgc_articles(n=1000, dst=Path("./_article_cache"))
