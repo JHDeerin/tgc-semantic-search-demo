@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+import requests.exceptions
 
 import tgc_semantic_search_demo.scraper
 
@@ -66,3 +67,8 @@ def test_fetching_article_content():
     assert article_data.author == expected.author
     assert len(article_data.text) > 0
     assert article_data.url == expected.url
+
+
+def test_httperror_raised_by_invalid_article_url():
+    with pytest.raises(requests.exceptions.HTTPError):
+        tgc_semantic_search_demo.scraper.fetch_article("https://www.thegospelcoalition.org/article/my-fake-article-blok03984tu3")

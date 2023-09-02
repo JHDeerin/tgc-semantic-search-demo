@@ -30,7 +30,8 @@ def search_tgc(max_posts: int) -> str:
     search_url = f"https://www.thegospelcoalition.org/wp-content/themes/sage/tgc-ajax.php?action=search_load_more&post_id=&args%5Bs%5D=&args%5Border%5D=DESC&args%5Borderby%5D=post_date&page=1&posts_per_page={max_posts}"
     # User-Agent header required, or else we get a 403 error
     res = requests.get(search_url, headers={"User-Agent": "Requests/2.31.0"})
-    assert res.status_code < 400
+    if res.status_code >= 400:
+        raise requests.exceptions.HTTPError(response=res)
     return res.json()["data"]["html"]
 
 
@@ -56,5 +57,6 @@ def parse_article(article_html: str) -> ArticleData:
 def fetch_article(url: str) -> ArticleData:
     """Fetch the given article's data from the TGC website."""
     res = requests.get(url)
-    assert res.status_code < 400
+    if res.status_code >= 400:
+        raise requests.exceptions.HTTPError(response=res)
     return parse_article(res.text)
