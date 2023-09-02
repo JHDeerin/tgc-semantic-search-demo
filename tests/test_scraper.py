@@ -22,3 +22,8 @@ def test_correct_article_urls_extracted_from_search(example_tgc_search):
         "https://www.thegospelcoalition.org/article/winner-2023-contest-young-adults/",
         "https://www.thegospelcoalition.org/article/gen-z-table/",
     ])
+
+
+def test_searching_recent_tgc_articles():
+    search_results_html = tgc_semantic_search_demo.scraper.search_tgc(max_posts=5)
+    assert len(search_results_html) > 0

@@ -9,6 +9,7 @@ packages = [{include = "tgc_semantic_search_demo"}]
 [tool.poetry.dependencies]
 python = "^3.8"
 beautifulsoup4 = "^4.12.2"
+requests = "^2.31.0"
 
 
 [tool.poetry.group.dev.dependencies]
