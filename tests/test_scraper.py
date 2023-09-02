@@ -14,7 +14,7 @@ def example_tgc_search() -> dict:
 
 
 def test_correct_article_urls_extracted_from_search(example_tgc_search):
-    article_urls = tgc_semantic_search_demo.scraper.get_article_urls(example_tgc_search["data"]["html"])
+    article_urls = tgc_semantic_search_demo.scraper.parse_article_urls(example_tgc_search["data"]["html"])
 
     assert set(article_urls) == set([
         "https://www.thegospelcoalition.org/article/gen-z-not-save-world/",
