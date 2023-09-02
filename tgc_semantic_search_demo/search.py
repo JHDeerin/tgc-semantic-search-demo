@@ -10,13 +10,17 @@ import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import chromadb
+import chromadb.utils.embedding_functions
 
 
-def initialize_database(src: Path):
+def initialize_database(src: Path) -> chromadb.Collection:
     # TODO: Implement this!
     client = chromadb.PersistentClient("./_chromadb_cache")
 
-    collection = client.create_collection("tgc-articles")
+    collection = client.create_collection(
+        "tgc-articles",
+        embedding_function=chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-mpnet-base-v2", device="cuda")
+    )
     # Load each saved TGC article into memory and add it to the DB
     for i, path in enumerate(os.listdir(src)):
         if not (src / path).is_file():
@@ -43,7 +47,10 @@ def print_search_results(results: chromadb.QueryResult):
 
 if __name__ == "__main__":
     # db = initialize_database(src=Path("./_article_cache"))
-    db = chromadb.PersistentClient("./_chromadb_cache").get_collection("tgc-articles")
+    db = chromadb.PersistentClient("./_chromadb_cache").get_collection(
+        "tgc-articles",
+        embedding_function=chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-mpnet-base-v2", device="cuda")
+    )
 
     parser = argparse.ArgumentParser()
     parser.add_argument("query")
