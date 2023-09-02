@@ -54,6 +54,9 @@ def parse_article(article_html: str) -> ArticleData:
         p for list in [p.text.split("\n") for p in paragraphs] for p in list
     ]
     text_paragraphs = [p for p in text_paragraphs if p.strip()]
+    # remove duplicate paragraphs
+    # TODO: Find the bug that introduces duplicate paragrpahs in the first place
+    text_paragraphs = list(dict.fromkeys(text_paragraphs).keys())
 
     publish_datetime = datetime.fromisoformat(
         soup.find("article").find("time")["datetime"]

@@ -10,6 +10,8 @@ packages = [{include = "tgc_semantic_search_demo"}]
 python = "^3.8"
 beautifulsoup4 = "^4.12.2"
 requests = "^2.31.0"
+chromadb = "^0.4.8"
+pysqlite3-binary = "^0.5.1"
 
 
 [tool.poetry.group.dev.dependencies]

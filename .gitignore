@@ -1,5 +1,6 @@
 # Project-specific
 _article_cache/
+_chromadb_cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
