@@ -1,10 +1,11 @@
 """Utilities for scraping article data from The Gospel Coalition website."""
+import dataclasses
 import json
+import logging
 import os
 import re
 import string
-import dataclasses
-import logging
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import List
@@ -74,8 +75,10 @@ def parse_article(article_html: str) -> ArticleData:
 
 def fetch_article(url: str) -> ArticleData:
     """Fetch the given article's data from the TGC website."""
-    res = requests.get(url)
+    res = requests.get(url, headers={"User-Agent": "Requests/2.31.0"})
     if res.status_code >= 400:
+        print(res.status_code)
+        print(res.text)
         raise requests.exceptions.HTTPError(response=res)
     return parse_article(res.text)
 
@@ -88,13 +91,14 @@ def download_recent_tgc_articles(n: int, dst: Path):
     for i, url in enumerate(article_urls):
         try:
             article = fetch_article(url)
-            article_filename = article.title.lower().translate(str.maketrans("", "", string.punctuation)).replace(" ", "_")
-            with open(dst / f"{article_filename}.json", "w") as file:
-                json.dump(article.to_json(), file, indent=2)
-            print(f"[{i+1}/{len(article_urls)}] Saved '{url}' ({len(article.text)} paragraphs)")
         except Exception as e:
             logging.exception(e)
             print(f"ERROR: Failed to download '{url}'")
+            continue
+        article_filename = article.title.lower().translate(str.maketrans("", "", string.punctuation)).replace(" ", "_")
+        with open(dst / f"{article_filename}.json", "w") as file:
+            json.dump(article.to_json(), file, indent=2)
+        print(f"[{i+1}/{len(article_urls)}] Saved '{url}' ({len(article.text)} paragraphs)")
 
 
 if __name__ == "__main__":
