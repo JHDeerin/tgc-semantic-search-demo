@@ -18,6 +18,7 @@ poetry install
 ## Usage
 
 ```sh
+# download recent articles
 python -m tgc_semantic_search_demo.scraper
 # refresh only needs to be used when new articles have been downloaded
 python -m tgc_semantic_search_demo.search "put your search query here" -n 5 --refresh 
